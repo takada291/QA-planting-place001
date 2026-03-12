@@ -74,7 +74,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script>
-        // --- 1. 空間データベース（高田様の界王拳の結晶） ---
+        // --- 1. 空間データベース ---
         const surveyData = [
             { id: "64", region: "奥越地区１", lat: 35.97165, lon: 136.59993, desc: "380m/尾根・山頂部 | BA型 | コナラ、ヤブツバキ等" },
             { id: "81", region: "奥越地区１", lat: 35.91874, lon: 136.46496, desc: "610m/尾根 | BB型 | ブナ、ミズナラ等" },
@@ -111,16 +111,16 @@
         ];
 
         let systemPrompt = "";
-        let currentData = null; // 選択された情報を保持
+        let currentData = null; 
         let marker = null;
 
         // --- 2. 地図の初期化 ---
-        // 福井県庁付近を中心に設定
         const map = L.map('map').setView([36.065, 136.221], 10); 
         
-        // 国土地理院の標準地図タイルを追加
+        // 【修正箇所】正しく閉じ括弧とaddTo(map)を追記しました
         L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
-    attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>国土地理院</a>"}).addTo(map);
+            attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>国土地理院</a>"
+        }).addTo(map);
         
         // --- 3. システムプロンプト読み込み ---
         window.onload = async () => {
@@ -132,12 +132,11 @@
             }
         };
 
-        // --- 4. 距離計算関数（簡易的なピタゴラスの定理） ---
+        // --- 4. 距離計算関数 ---
         function getNearestPoint(lat, lon) {
             let nearest = null;
             let minDist = Infinity;
             surveyData.forEach(point => {
-                // 緯度経度の差分から簡易的に距離を比較
                 const dLat = point.lat - lat;
                 const dLon = point.lon - lon;
                 const dist = dLat * dLat + dLon * dLon;
@@ -154,11 +153,9 @@
             const lat = e.latlng.lat;
             const lon = e.latlng.lng;
 
-            // マーカーの設置
             if(marker) map.removeLayer(marker);
             marker = L.marker([lat, lon]).addTo(map);
 
-            // 国土地理院 標高APIの呼び出し
             document.getElementById('location-info').innerHTML = "標高データを取得中...";
             try {
                 const url = `https://cyberjapandata.gsi.go.jp/api/elevation/elevation?lon=${lon}&lat=${lat}&outtype=JSON`;
@@ -166,20 +163,16 @@
                 const data = await res.json();
                 const elevation = data.elevation === "----" ? "取得不可" : Math.round(data.elevation) + "m";
 
-                // 最寄りの調査地点を計算
                 const nearest = getNearestPoint(lat, lon);
 
-                // データを保持
                 currentData = { lat, lon, elevation, nearest };
 
-                // UIの更新
                 document.getElementById('location-info').innerHTML = `
                     <strong>タップした位置:</strong> 標高 ${elevation} (緯度:${lat.toFixed(4)}, 経度:${lon.toFixed(4)})<br>
                     <strong>最寄りの調査データ:</strong> ${nearest.region} No.${nearest.id} <br>
                     <span style="color:#666;">（環境基準: ${nearest.desc}）</span>
                 `;
                 
-                // ボタンの有効化
                 document.getElementById('askBtn').disabled = false;
 
             } catch (error) {
@@ -202,7 +195,6 @@
             askBtn.innerText = "AIが分析中...";
             chatBox.innerHTML = '<div class="message bot-msg">データベースを照合し、判定しています...</div>';
 
-            // AIに投げる専用のプロンプトを構築
             const userPrompt = `
 ユーザーが地図上で以下の条件を指定しました。この条件に最も適した樹種と、広葉樹等を含めた多様な森づくりの提案をしてください。
 
@@ -237,7 +229,4 @@
         }
     </script>
 </body>
-
 </html>
-
-
