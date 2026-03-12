@@ -200,7 +200,10 @@
                     body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
                 });
 
-                if (!response.ok) throw new Error("APIエラーが発生しました。");
+               if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`APIエラー: ${errorData.error.message}`);
+                }
                 const data = await response.json();
                 const botReply = data.candidates[0].content.parts[0].text;
                 
@@ -216,3 +219,4 @@
     </script>
 </body>
 </html>
+
