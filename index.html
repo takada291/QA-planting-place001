@@ -9,21 +9,14 @@
         body { font-family: sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; color: #333; }
         h1 { color: #2c3e50; text-align: center; font-size: 1.5rem; }
         .panel { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        
-        /* 地図のスタイル */
         #map { height: 400px; width: 100%; border-radius: 8px; z-index: 1; }
-        
         .form-group { margin-bottom: 15px; }
         label { font-weight: bold; display: block; margin-bottom: 5px; }
-        select, input[type="password"], input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        
-        /* 選択情報のハイライト */
+        select, input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         #location-info { background: #e8f4f8; padding: 10px; border-left: 4px solid #3498db; margin-bottom: 15px; font-size: 0.9rem; }
-        
         .chat-box { background: #fff; height: 300px; overflow-y: auto; padding: 20px; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 20px; }
         .message { margin-bottom: 15px; padding: 12px 15px; border-radius: 8px; line-height: 1.6; font-size: 0.95rem; }
         .bot-msg { background: #f8f9fa; border-left: 4px solid #27ae60; }
-        
         button { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 4px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         button:hover { background: #2ecc71; }
         button:disabled { background: #95a5a6; cursor: not-allowed; }
@@ -74,7 +67,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script>
-        // --- 1. 空間データベース ---
         const surveyData = [
             { id: "64", region: "奥越地区１", lat: 35.97165, lon: 136.59993, desc: "380m/尾根・山頂部 | BA型 | コナラ、ヤブツバキ等" },
             { id: "81", region: "奥越地区１", lat: 35.91874, lon: 136.46496, desc: "610m/尾根 | BB型 | ブナ、ミズナラ等" },
@@ -114,15 +106,13 @@
         let currentData = null; 
         let marker = null;
 
-        // --- 2. 地図の初期化 ---
+        // --- 地図の初期化 ---
         const map = L.map('map').setView([36.065, 136.221], 10); 
-        
-        // 【修正箇所】正しく閉じ括弧とaddTo(map)を追記しました
         L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
             attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>国土地理院</a>"
         }).addTo(map);
         
-        // --- 3. システムプロンプト読み込み ---
+        // --- マークダウンの読み込み ---
         window.onload = async () => {
             try {
                 const response = await fetch('./tekichi-tekiboku.md');
@@ -132,7 +122,6 @@
             }
         };
 
-        // --- 4. 距離計算関数 ---
         function getNearestPoint(lat, lon) {
             let nearest = null;
             let minDist = Infinity;
@@ -148,7 +137,6 @@
             return nearest;
         }
 
-        // --- 5. 地図クリックイベント ---
         map.on('click', async function(e) {
             const lat = e.latlng.lat;
             const lon = e.latlng.lng;
@@ -158,13 +146,13 @@
 
             document.getElementById('location-info').innerHTML = "標高データを取得中...";
             try {
-                const url = `https://cyberjapandata.gsi.go.jp/api/elevation/elevation?lon=${lon}&lat=${lat}&outtype=JSON`;
+                // 【修正箇所】存在しないURLから、正しい本物の標高取得URLに書き直しました。
+                const url = `https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=${lon}&lat=${lat}&outtype=JSON`;
                 const res = await fetch(url);
                 const data = await res.json();
                 const elevation = data.elevation === "----" ? "取得不可" : Math.round(data.elevation) + "m";
 
                 const nearest = getNearestPoint(lat, lon);
-
                 currentData = { lat, lon, elevation, nearest };
 
                 document.getElementById('location-info').innerHTML = `
@@ -172,15 +160,13 @@
                     <strong>最寄りの調査データ:</strong> ${nearest.region} No.${nearest.id} <br>
                     <span style="color:#666;">（環境基準: ${nearest.desc}）</span>
                 `;
-                
                 document.getElementById('askBtn').disabled = false;
-
             } catch (error) {
                 document.getElementById('location-info').innerHTML = "位置情報の取得に失敗しました。";
+                console.error("標高APIエラー:", error);
             }
         });
 
-        // --- 6. Gemini API呼び出し ---
         async function askGemini() {
             const apiKey = document.getElementById('apiKey').value;
             const terrain = document.getElementById('terrainSelect').value;
