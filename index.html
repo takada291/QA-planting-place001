@@ -67,44 +67,128 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script>
+        // ユーザーが収集した全100件以上の調査データ
         const surveyData = [
-            { id: "64", region: "奥越地区１", lat: 35.97165, lon: 136.59993, desc: "380m/尾根・山頂部 | BA型 | コナラ、ヤブツバキ等" },
-            { id: "81", region: "奥越地区１", lat: 35.91874, lon: 136.46496, desc: "610m/尾根 | BB型 | ブナ、ミズナラ等" },
-            { id: "67", region: "奥越地区１", lat: 35.95102, lon: 136.57268, desc: "800m/尾根 | BB型 | ブナ、ミズナラ等" },
-            { id: "31", region: "奥越地区１", lat: 36.05423, lon: 136.52985, desc: "420m/斜面上部 | BD(d)型 | スギ、トチノキ等" },
-            { id: "33", region: "奥越地区１", lat: 36.04494, lon: 136.55873, desc: "520m/斜面上部 | BD(d)型 | スギ、トチノキ等" },
+            // 奥越地区１
+            { id: "64", region: "奥越地区１", lat: 35.97165, lon: 136.59993, desc: "380m/尾根・山頂部 | BA型(造林不適) | コナラ、ヤブツバキ等" },
+            { id: "81", region: "奥越地区１", lat: 35.91874, lon: 136.46496, desc: "610m/尾根 | BB型(乾燥) | アカマツ、コナラ等" },
+            { id: "67", region: "奥越地区１", lat: 35.95102, lon: 136.57268, desc: "800m/尾根 | BB型(乾燥) | アカマツ、ネジキ等" },
+            { id: "31", region: "奥越地区１", lat: 36.05423, lon: 136.52985, desc: "420m/斜面上部 | BD(d)型 | スギ(要施肥)、トチノキ等" },
+            { id: "33", region: "奥越地区１", lat: 36.04494, lon: 136.55873, desc: "520m/斜面上部 | BD(d)型 | スギ(要施肥)、トチノキ等" },
             { id: "10", region: "奥越地区１", lat: 36.13455, lon: 136.57598, desc: "830m/中腹 | BD(d)型 | スギ、ミズナラ等" },
             { id: "9", region: "奥越地区１", lat: 36.13905, lon: 136.57628, desc: "850m/中腹 | BD(d)型 | スギ、ミズナラ等" },
-            { id: "24", region: "奥越地区１", lat: 36.08334, lon: 136.54706, desc: "490m/斜面下部 | BD型 | スギ最適地" },
-            { id: "8", region: "奥越地区１", lat: 36.14051, lon: 136.54658, desc: "640m/斜面下部 | BD型 | スギ最適地" },
-            { id: "20", region: "奥越地区１", lat: 36.09995, lon: 136.59718, desc: "750m/凹斜面 | BD型 | スギ最適地" },
-            { id: "53", region: "奥越地区２", lat: 35.86509, lon: 136.74773, desc: "780m/尾根 | BB型 | ブナ、ミズナラ等" },
-            { id: "41", region: "奥越地区２", lat: 35.82923, lon: 136.64726, desc: "810m/斜面上部 | BB型 | ブナ、ミズナラ等" },
-            { id: "35", region: "奥越地区２", lat: 35.91874, lon: 136.61070, desc: "870m/斜面上部 | BB型 | ブナ、ミズナラ等" },
-            { id: "47", region: "奥越地区２", lat: 35.85887, lon: 136.78124, desc: "1100m/尾根 | BB型 | ブナ、ミズナラ等" },
-            { id: "14", region: "奥越地区２", lat: 35.89524, lon: 136.59830, desc: "770m/中腹 | BD(d)型 | スギ、トチノキ等" },
-            { id: "11", region: "奥越地区２", lat: 35.90984, lon: 136.68468, desc: "780m/中腹 | BD(d)型 | スギ、トチノキ等" },
-            { id: "13", region: "奥越地区２", lat: 35.88206, lon: 136.57452, desc: "880m/小尾根 | BD(d)型 | スギ、ミズナラ等" },
-            { id: "1", region: "奥越地区２", lat: 35.97391, lon: 136.73421, desc: "1080m/中腹 | BD(d)型 | スギ、ミズナラ等" },
-            { id: "2", region: "奥越地区２", lat: 35.97210, lon: 136.72528, desc: "810m/斜面下部 | BD型 | スギ最適地" },
-            { id: "33-2", region: "奥越地区２", lat: 35.98172, lon: 136.74610, desc: "890m/斜面下部 | BD型 | スギ最適地" },
-            { id: "12", region: "若狭地区１", lat: 35.60047, lon: 136.06505, desc: "300m/山頂 | BB型 | アカマツ、クロマツ等" },
-            { id: "48", region: "若狭地区１", lat: 35.63222, lon: 136.00795, desc: "318m/山頂 | BB型 | アカマツ、ミズナラ等" },
-            { id: "44", region: "若狭地区１", lat: 35.56709, lon: 135.98435, desc: "360m/尾根 | BB型 | アカマツ、ミズナラ等" },
-            { id: "47-2", region: "若狭地区１", lat: 35.66821, lon: 135.98469, desc: "418m/尾根 | BB型 | アカマツ、ミズナラ等" },
-            { id: "7", region: "若狭地区１", lat: 35.61122, lon: 136.13640, desc: "505m/山頂 | BB型 | アカマツ、ミズナラ等" },
-            { id: "10-2", region: "若狭地区１", lat: 35.62722, lon: 136.08389, desc: "180m/斜面上部 | BB~BD(d)型 | アカマツ、ヒノキ等" },
-            { id: "45", region: "若狭地区１", lat: 35.62052, lon: 135.90084, desc: "198m/斜面上部 | BB~BD(d)型 | アカマツ、ヒノキ等" },
+            { id: "24", region: "奥越地区１", lat: 36.08334, lon: 136.54706, desc: "490m/斜面下部 | BD型(スギ最適地) | スギ、サワグルミ等" },
+            { id: "8", region: "奥越地区１", lat: 36.14051, lon: 136.54658, desc: "640m/斜面下部 | BD型(スギ最適地) | スギ、サワグルミ等" },
+            { id: "20", region: "奥越地区１", lat: 36.09995, lon: 136.59718, desc: "750m/凹斜面 | BD型(スギ最適地) | スギ、サワグルミ等" },
+            { id: "47", region: "奥越地区１", lat: 36.02349, lon: 136.63310, desc: "1000m/緩斜面 | BD型 | スギ、クロモジ等" },
+            { id: "50", region: "奥越地区１", lat: 35.99249, lon: 136.65370, desc: "560m/斜面中腹 | BD型 | ブナ、イタヤカエデ等" },
+            { id: "52", region: "奥越地区１", lat: 35.98579, lon: 136.64434, desc: "409m/斜面下部 | BD型 | スギ、リョウメンシダ等" },
+            { id: "57", region: "奥越地区１", lat: 35.98568, lon: 136.68756, desc: "1020m/緩斜面 | BD型 | ヤナギ類、ミツバアケビ等" },
+            { id: "60", region: "奥越地区１", lat: 35.96974, lon: 136.66057, desc: "530m/斜面中腹 | BD型 | スギ、トチ等" },
+            { id: "61", region: "奥越地区１", lat: 35.96175, lon: 136.62173, desc: "360m/斜面中腹 | BD型 | スギ、アカソ等" },
+            { id: "59", region: "奥越地区１", lat: 35.97169, lon: 136.66391, desc: "606m/谷底 | BD型 | トチ、アケビ等" },
+            { id: "35", region: "奥越地区１", lat: 36.08431, lon: 136.74597, desc: "1800m/斜面上部 | dB型 | ササ類、ダケカンバ等" },
+            { id: "38", region: "奥越地区１", lat: 36.06672, lon: 136.72975, desc: "1090m/緩斜面 | dBD(d)型 | ブナ、クロモジ等" },
+            { id: "12", region: "奥越地区１", lat: 36.12843, lon: 136.60203, desc: "1152m/山頂 | Pw(i)型 | マルバマンサク、ササ類等" },
+            { id: "48", region: "奥越地区１", lat: 36.01229, lon: 136.73232, desc: "1670m/緩斜面 | Pw(i)型 | クロソヨゴ、ネマガリダケ等" },
+            { id: "49", region: "奥越地区１", lat: 36.00387, lon: 136.72563, desc: "1360m/斜面中腹 | Pw(i)型 | ブナ、ムシカリ等" },
+            { id: "36", region: "奥越地区１", lat: 36.07918, lon: 136.73421, desc: "1480m/尾根 | PDII型 | ササ類、クロソヨゴ等" },
+            { id: "42", region: "奥越地区１", lat: 36.03123, lon: 136.65876, desc: "1330m/山頂緩斜面 | PDI型 | ブナ、ムシカリ等" },
+            { id: "21", region: "奥越地区１", lat: 36.09728, lon: 136.63671, desc: "1520m/緩斜面 | PDII-III型 | ササ類、イヌツゲ等" },
+            { id: "30", region: "奥越地区１", lat: 36.07664, lon: 136.65494, desc: "1440m/山頂 | PDII-III型 | ササ類、ブナ等" },
+            { id: "54", region: "奥越地区１", lat: 35.98936, lon: 136.68099, desc: "1130m/頂上 | PDII-III型 | ヤマザクラ、コシアブラ等" },
+            { id: "43", region: "奥越地区１", lat: 36.04414, lon: 136.65846, desc: "1300m/斜面上部 | PDII-III型 | ブナ、コシアブラ等" },
+            { id: "26", region: "奥越地区１", lat: 36.07689, lon: 136.54130, desc: "420m/斜面下部 | BℓD(d)型 | スギ、ヤマウルシ等" },
+            { id: "27", region: "奥越地区１", lat: 36.07429, lon: 136.57302, desc: "940m/斜面中腹 | BℓD(d)型 | ブナ、ミズナラ等" },
+            { id: "56", region: "奥越地区１", lat: 35.98589, lon: 136.68584, desc: "1000m/緩斜面 | BℓD(d)型 | トチ、ナラガシワ等" },
+            { id: "62", region: "奥越地区１", lat: 35.96217, lon: 136.61671, desc: "350m/斜面中腹 | BℓD(d)型 | スギ、クロモジ等" },
+            { id: "15", region: "奥越地区１", lat: 36.11441, lon: 136.55735, desc: "540m/斜面中腹 | BℓD型 | クズ、ヤマイモ等" },
+            { id: "32", region: "奥越地区１", lat: 36.06027, lon: 136.56838, desc: "820m/斜面中腹 | BℓD型 | スギ、クロモジ等" },
+            { id: "34", region: "奥越地区１", lat: 36.03001, lon: 136.56057, desc: "480m/斜面中腹 | BℓD型 | スギ、タニウツギ等" },
+            { id: "23", region: "奥越地区１", lat: 36.08441, lon: 136.54379, desc: "480m/斜面中腹 | BℓD型 | スギ、クロモジ等" },
+            { id: "70", region: "奥越地区１", lat: 35.93959, lon: 136.57783, desc: "620m/尾根 | BB型 | ブナ、シデ等" },
+            { id: "74", region: "奥越地区１", lat: 35.92169, lon: 136.53392, desc: "690m/尾根頂上 | BB型 | ミズナラ、マルバマンサク等" },
+            { id: "77", region: "奥越地区１", lat: 35.90935, lon: 136.51852, desc: "810m/尾根上部 | BB型 | ミズナラ、クリ等" },
+            { id: "85", region: "奥越地区１", lat: 35.87848, lon: 136.47337, desc: "920m/斜面上部 | BB型 | ブナ、リョウブ等" },
+            { id: "93", region: "奥越地区１", lat: 35.84147, lon: 136.57302, desc: "850m/尾根 | BB型 | ミズナラ、コシアブラ等" },
+            { id: "97", region: "奥越地区１", lat: 35.79912, lon: 136.57117, desc: "850m/斜面上部 | BB型 | スギ、シロモジ等" },
+            { id: "99", region: "奥越地区１", lat: 35.82529, lon: 136.52418, desc: "670m/斜面上部 | BB型 | ブナ、リョウブ等" },
+
+            // 奥越地区２
+            { id: "53", region: "奥越地区２", lat: 35.86509, lon: 136.74773, desc: "780m/尾根緩斜面 | BB型(乾燥・雪害) | ミズナラ、リョウブ等" },
+            { id: "41", region: "奥越地区２", lat: 35.82923, lon: 136.64726, desc: "810m/斜面上部 | BB型(乾燥・雪害) | ミズナラ、コシアブラ等" },
+            { id: "35", region: "奥越地区２", lat: 35.91874, lon: 136.6107, desc: "850m/尾根中腹 | BB型(乾燥・雪害) | ブナ、コシアブラ等" },
+            { id: "47", region: "奥越地区２", lat: 35.85887, lon: 136.78124, desc: "1100m/斜面上部 | BB型(乾燥・雪害) | ブナ、ハナカエデ等" },
+            { id: "14", region: "奥越地区２", lat: 35.89524, lon: 136.5983, desc: "770m/斜面中腹 | BD(d)型 | ミズナラ、シデ等" },
+            { id: "11", region: "奥越地区２", lat: 35.90984, lon: 136.68468, desc: "780m/斜面中腹 | BD(d)型 | トチ、ミズナラ等" },
+            { id: "13", region: "奥越地区２", lat: 35.88206, lon: 136.57452, desc: "880m/斜面中腹 | BD(d)型 | ブナ、ヤマモミジ等" },
+            { id: "1", region: "奥越地区２", lat: 35.97391, lon: 136.73421, desc: "1080m/斜面中腹 | BD(d)型 | ブナ、ホオノキ等" },
+            { id: "2", region: "奥越地区２", lat: 35.9721, lon: 136.72528, desc: "810m/斜面下部 | BD型(スギ最適地) | ホオノキ、ミズナラ等" },
+            { id: "33", region: "奥越地区２", lat: 35.98172, lon: 136.7461, desc: "890m/斜面下部 | BD型(スギ最適地) | カラマツ、スギ等" },
+            { id: "24", region: "奥越地区２", lat: 35.84909, lon: 136.82742, desc: "1110m/山頂付近 | BB型 | ブナ、ナツツバキ等" },
+            { id: "29", region: "奥越地区２", lat: 35.88749, lon: 136.67121, desc: "930m/小頂上 | BB型 | ブナ、ミズナラ等" },
+            { id: "48", region: "奥越地区２", lat: 35.80765, lon: 136.79545, desc: "960m/斜面上部 | BB型 | ブナ、ミズナラ等" },
+            { id: "49", region: "奥越地区２", lat: 35.86231, lon: 136.73189, desc: "855m/山頂 | BB型 | ブナ、ミズナラ等" },
+            { id: "50", region: "奥越地区２", lat: 35.83653, lon: 136.74786, desc: "1160m/尾根上部 | BB型 | ヒメコマツ、ブナ等" },
+            { id: "51", region: "奥越地区２", lat: 35.87173, lon: 136.78275, desc: "870m/尾根緩斜面 | BB型 | ミズナラ、ブナ等" },
+            { id: "8", region: "奥越地区２", lat: 35.85323, lon: 136.83163, desc: "1000m/斜面中腹 | BB型 | ミズナラ、ヒノキ等" },
+            { id: "12", region: "奥越地区２", lat: 35.91199, lon: 136.63593, desc: "640m/斜面中腹 | BB型 | ミズナラ、リョウブ等" },
+            { id: "7", region: "奥越地区２", lat: 35.90170, lon: 136.81523, desc: "1200m/山頂付近 | BD(d)型 | スギ、ブナ等" },
+            { id: "30", region: "奥越地区２", lat: 35.88658, lon: 136.65434, desc: "900m/尾根 | BD(d)型 | ミズナラ、ブナ等" },
+            { id: "31", region: "奥越地区２", lat: 35.90515, lon: 136.69065, desc: "840m/斜面中〜下部 | BD(d)型 | シイ、ミズナラ等" },
+            { id: "34", region: "奥越地区２", lat: 35.94605, lon: 136.76854, desc: "850m/山頂付近 | BD(d)型 | ホオノキ、ヤマモミジ等" },
+            { id: "36", region: "奥越地区２", lat: 35.87142, lon: 136.60010, desc: "600m/小尾根 | BD(d)型 | トチ、ウワミズザクラ等" },
+            { id: "39", region: "奥越地区２", lat: 35.86109, lon: 136.75927, desc: "700m/尾根 | BD(d)型 | コナラ、マルバマンサク等" },
+            { id: "42", region: "奥越地区２", lat: 35.89141, lon: 136.72052, desc: "780m/斜面中腹 | BD(d)型 | ブナ、ミズナラ等" },
+            { id: "45", region: "奥越地区２", lat: 35.80379, lon: 136.67546, desc: "800m/斜面中腹 | BD(d)型 | ヌルデ、ウワミズザクラ等" },
+            { id: "52", region: "奥越地区２", lat: 35.89903, lon: 136.78455, desc: "1090m/斜面中腹 | BD(d)型 | ヨグソミネバリ、ミズナラ等" },
+            { id: "3", region: "奥越地区２", lat: 35.93705, lon: 136.68640, desc: "740m/斜面中腹 | BD(d)型 | ミズナラ、ブナ等" },
+            { id: "6", region: "奥越地区２", lat: 35.93000, lon: 136.66859, desc: "810m/斜面中腹 | BD(d)型 | ウリハダカエデ、クロモジ等" },
+            { id: "9", region: "奥越地区２", lat: 35.91300, lon: 136.79433, desc: "1370m/斜面中腹 | BD(d)型 | ミズキ、トチ等" },
+            { id: "10", region: "奥越地区２", lat: 35.92027, lon: 136.65984, desc: "750m/斜面下部 | BD(d)型 | ミズナラ、トチ等" },
+            { id: "15", region: "奥越地区２", lat: 35.84259, lon: 136.77691, desc: "760m/斜面下部 | BD(d)型 | アカマツ、ホオノキ等" },
+            { id: "16", region: "奥越地区２", lat: 35.82077, lon: 136.79013, desc: "940m/斜面中腹 | BD(d)型 | ブナ、トチ等" },
+
+            // 若狭地区１
+            { id: "12", region: "若狭地区１", lat: 35.60047, lon: 136.06505, desc: "300m/斜面中腹 | BB型(乾燥) | アカマツ、ホオノキ等" },
+            { id: "48", region: "若狭地区１", lat: 35.63222, lon: 136.00795, desc: "318m/山頂付近 | BB型(乾燥) | アカマツ、ミズナラ等" },
+            { id: "44", region: "若狭地区１", lat: 35.56709, lon: 135.98435, desc: "360m/尾根 | BB型(乾燥) | アカマツ、ミズナラ等" },
+            { id: "47", region: "若狭地区１", lat: 35.66821, lon: 135.98469, desc: "418m/山頂付近 | BB型(乾燥) | アカマツ、ミズナラ等" },
+            { id: "7", region: "若狭地区１", lat: 35.61122, lon: 136.1364, desc: "505m/山頂 | BB型(乾燥) | アカマツ、ミズナラ等" },
+            { id: "10", region: "若狭地区１", lat: 35.62722, lon: 136.08389, desc: "180m/斜面上部 | BB~BD(d)型 | アカマツ、ヒノキ等" },
+            { id: "45", region: "若狭地区１", lat: 35.62052, lon: 135.90084, desc: "198m/斜面上部 | BB~BD(d)型 | アカマツ、ミズナラ等" },
             { id: "39", region: "若狭地区１", lat: 35.54101, lon: 136.00137, desc: "250m/斜面上部 | BB~BD(d)型 | アカマツ、ヒノキ等" },
-            { id: "17", region: "若狭地区１", lat: 35.71573, lon: 136.09606, desc: "270m/斜面上部 | BB~BD(d)型 | アカマツ、ヒノキ等" },
+            { id: "17", region: "若狭地区１", lat: 35.71573, lon: 136.09606, desc: "270m/斜面上部 | BB~BD(d)型 | スギ、マツ等" },
             { id: "43", region: "若狭地区１", lat: 35.57727, lon: 135.98276, desc: "190m/中腹 | BD(d)~BD型 | スギ、ヒノキ等" },
-            { id: "35-2", region: "若狭地区１", lat: 35.57543, lon: 135.93869, desc: "310m/中腹 | BD(d)~BD型 | スギ、ヒノキ等" },
-            { id: "4", region: "若狭地区１", lat: 35.76158, lon: 136.10889, desc: "330m/下部 | BD(d)~BD型 | スギ、ヒノキ等" }
+            { id: "35", region: "若狭地区１", lat: 35.57543, lon: 135.93869, desc: "310m/斜面中腹 | BD(d)~BD型 | スギ、ヒノキ等" },
+            { id: "4", region: "若狭地区１", lat: 35.76158, lon: 136.10889, desc: "330m/下部 | BD(d)~BD型 | スギ、ヒノキ等" },
+            { id: "16", region: "若狭地区１", lat: 35.68533, lon: 136.01151, desc: "180m/斜面中腹 | BB型 | アカマツ、ミズナラ等" },
+            { id: "28", region: "若狭地区１", lat: 35.60086, lon: 135.97924, desc: "405m/頂上付近 | BB型 | ケヤキ、ヒノキ等" },
+            { id: "30", region: "若狭地区１", lat: 35.59109, lon: 135.96774, desc: "340m/斜面上部 | BB型 | アカマツ、ミズナラ等" },
+            { id: "32", region: "若狭地区１", lat: 35.60386, lon: 135.99156, desc: "400m/斜面中腹 | BB型 | アカマツ、ミズナラ等" },
+            { id: "14", region: "若狭地区１", lat: 35.58976, lon: 136.02405, desc: "910m/斜面上部 | BD(d)型 | スギ、ブナ等" },
+            { id: "15", region: "若狭地区１", lat: 35.72596, lon: 136.02211, desc: "300m/斜面中腹 | BD(d)型 | アカマツ、ミズナラ等" },
+            { id: "22", region: "若狭地区１", lat: 35.65161, lon: 136.12455, desc: "400m/斜面中腹 | BD(d)型 | ホオノキ、コナラ等" },
+            { id: "34", region: "若狭地区１", lat: 35.61869, lon: 135.95251, desc: "340m/斜面上部 | BD(d)型 | アカマツ、ミズナラ等" },
+            { id: "13", region: "若狭地区１", lat: 35.60766, lon: 136.03460, desc: "140m/斜面下部 | BD(d)型 | アオキ、ウラジロ等" },
+            { id: "20", region: "若狭地区１", lat: 35.66999, lon: 136.09456, desc: "190m/頂上付近 | BD型 | アカマツ、タモ等" },
+            { id: "33", region: "若狭地区１", lat: 35.61767, lon: 135.85247, desc: "240m/斜面上部 | Er型 | ミズナラ、リョウブ等" }
         ];
 
         let systemPrompt = "";
         let currentData = null; 
-        let marker = null;
+        let marker = null; 
+        let nearestMarker = null; // 最寄り地点の赤ピン用
+
+        // 赤色ピンのアイコン設定
+        const redIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
 
         // --- 地図の初期化 ---
         const map = L.map('map').setView([36.065, 136.221], 10); 
@@ -115,7 +199,8 @@
         // --- マークダウンの読み込み ---
         window.onload = async () => {
             try {
-                const response = await fetch('./tekichi-tekiboku.md');
+                // ファイル名を指定のMDファイル名に合わせる
+                const response = await fetch('./適地適木_260317.md');
                 if (response.ok) systemPrompt = await response.text();
             } catch (error) {
                 console.error("Markdown読み込みエラー:", error);
@@ -145,8 +230,8 @@
             marker = L.marker([lat, lon]).addTo(map);
 
             document.getElementById('location-info').innerHTML = "標高データを取得中...";
+            
             try {
-                // 【修正箇所】存在しないURLから、正しい本物の標高取得URLに書き直しました。
                 const url = `https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=${lon}&lat=${lat}&outtype=JSON`;
                 const res = await fetch(url);
                 const data = await res.json();
@@ -154,6 +239,13 @@
 
                 const nearest = getNearestPoint(lat, lon);
                 currentData = { lat, lon, elevation, nearest };
+
+                // 最寄り地点に赤色ピンを立てる処理
+                if(nearestMarker) map.removeLayer(nearestMarker);
+                if(nearest && nearest.lat && nearest.lon) {
+                    nearestMarker = L.marker([nearest.lat, nearest.lon], {icon: redIcon}).addTo(map)
+                        .bindPopup(`<b>最寄り調査データ: No.${nearest.id}</b><br>${nearest.region}`);
+                }
 
                 document.getElementById('location-info').innerHTML = `
                     <strong>タップした位置:</strong> 標高 ${elevation} (緯度:${lat.toFixed(4)}, 経度:${lon.toFixed(4)})<br>
@@ -219,5 +311,3 @@
     </script>
 </body>
 </html>
-
-
