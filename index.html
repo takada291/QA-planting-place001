@@ -11,8 +11,6 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
-      // ここも測定IDに書き換えます
       gtag('config', 'G-WXBP6CPKLP');
     </script>
     
@@ -24,6 +22,7 @@
         .form-group { margin-bottom: 15px; }
         label { font-weight: bold; display: block; margin-bottom: 5px; }
         select, input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .api-note { font-size: 0.8rem; color: #666; background: #eee; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
         #location-info { background: #e8f4f8; padding: 10px; border-left: 4px solid #3498db; margin-bottom: 15px; font-size: 0.9rem; }
         .chat-box { background: #fff; height: 300px; overflow-y: auto; padding: 20px; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 20px; }
         .message { margin-bottom: 15px; padding: 12px 15px; border-radius: 8px; line-height: 1.6; font-size: 0.95rem; }
@@ -35,9 +34,13 @@
 </head>
 <body>
 
-    <h1>福井県 適地適木QAマップ（AI判定）</h1>
+    <h1>福井県 適地適木QAマップ（AI判定）v1.0</h1>
 
     <div class="panel">
+        <div class="api-note">
+            <strong>APIキー設定（初回のみ）</strong><br>
+            ブラウザに保存されるため、次回以降の入力は不要です。
+        </div>
         <div class="form-group">
             <label for="apiKey">Gemini APIキー:</label>
             <input type="password" id="apiKey" placeholder="AI Studioで取得したAPIキーを入力">
@@ -78,7 +81,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script>
-        // ユーザーが収集した全100件以上の調査データ
         const surveyData = [
             // 奥越地区１
             { id: "64", region: "奥越地区１", lat: 35.97165, lon: 136.59993, desc: "380m/尾根・山頂部 | BA型(造林不適) | コナラ、ヤブツバキ等" },
@@ -186,12 +188,15 @@
             { id: "33", region: "若狭地区１", lat: 35.61767, lon: 135.85247, desc: "240m/斜面上部 | Er型 | ミズナラ、リョウブ等" }
         ];
 
+        const apiKeyInput = document.getElementById('apiKey');
+        const savedKey = localStorage.getItem('gemini_api_key_tekichi');
+        if (savedKey) apiKeyInput.value = savedKey;
+
         let systemPrompt = "";
         let currentData = null; 
         let marker = null; 
-        let nearestMarker = null; // 最寄り地点の赤ピン用
+        let nearestMarker = null;
 
-        // 赤色ピンのアイコン設定
         const redIcon = new L.Icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
@@ -201,16 +206,13 @@
             shadowSize: [41, 41]
         });
 
-        // --- 地図の初期化 ---
         const map = L.map('map').setView([36.065, 136.221], 10); 
         L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
             attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>国土地理院</a>"
         }).addTo(map);
         
-        // --- マークダウンの読み込み ---
         window.onload = async () => {
             try {
-                // ファイル名を指定のMDファイル名に合わせる
                 const response = await fetch('./適地適木_260317.md');
                 if (response.ok) systemPrompt = await response.text();
             } catch (error) {
@@ -251,7 +253,6 @@
                 const nearest = getNearestPoint(lat, lon);
                 currentData = { lat, lon, elevation, nearest };
 
-                // 最寄り地点に赤色ピンを立てる処理
                 if(nearestMarker) map.removeLayer(nearestMarker);
                 if(nearest && nearest.lat && nearest.lon) {
                     nearestMarker = L.marker([nearest.lat, nearest.lon], {icon: redIcon}).addTo(map)
@@ -270,8 +271,75 @@
             }
         });
 
+        // --- AI通信処理（タイムアウトと3.6->2.5のフォールバック実装） ---
+        const MODEL_CANDIDATES = ["gemini-3.6-flash", "gemini-2.5-flash"];
+
+        async function fetchWithTimeout(url, options, timeoutMs = 90000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                return await fetch(url, { ...options, signal: controller.signal });
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function callGeminiWithFallback(apiKey, basePayload) {
+            let lastErrorMsg = "";
+            for (const modelName of MODEL_CANDIDATES) {
+                const isGemini3 = modelName.startsWith("gemini-3");
+                const payloadWithThinking = JSON.parse(JSON.stringify(basePayload));
+                
+                // 3.6特有のパラメーターを付与
+                if (isGemini3) {
+                    payloadWithThinking.generationConfig = {
+                        ...(payloadWithThinking.generationConfig || {}),
+                        thinkingConfig: { thinkingLevel: "LOW" }
+                    };
+                }
+                
+                try {
+                    let response = await fetchWithTimeout(
+                        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payloadWithThinking)
+                        },
+                        90000
+                    );
+                    
+                    let data = await response.json();
+
+                    // 400エラーで3.6の場合は、通常フォーマットで再試行する堅牢化処理
+                    if (data.error && response.status === 400 && isGemini3) {
+                        response = await fetchWithTimeout(
+                            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+                            { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(basePayload) },
+                            90000
+                        );
+                        data = await response.json();
+                    }
+                    
+                    if (data.error) {
+                        lastErrorMsg = `[${modelName}] ${data.error.message}`;
+                        continue;
+                    }
+                    
+                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                        const parts = data.candidates[0].content.parts || [];
+                        const answerPart = parts.find(p => typeof p.text === 'string' && !p.thought) || parts.find(p => typeof p.text === 'string');
+                        if (answerPart) return answerPart.text;
+                    }
+                } catch (err) {
+                    lastErrorMsg = `[${modelName}] ${err.name === 'AbortError' ? 'タイムアウト(90秒超過)' : err.message}`;
+                }
+            }
+            throw new Error(lastErrorMsg || "AIモデルでの通信に失敗しました。APIキーや利用制限をご確認ください。");
+        }
+
         async function askGemini() {
-            const apiKey = document.getElementById('apiKey').value;
+            const apiKey = apiKeyInput.value.trim();
             const terrain = document.getElementById('terrainSelect').value;
             const chatBox = document.getElementById('chatBox');
             const askBtn = document.getElementById('askBtn');
@@ -279,6 +347,8 @@
             if (!apiKey) { alert("APIキーを入力してください。"); return; }
             if (!currentData) { alert("地図をタップして場所を指定してください。"); return; }
             if (!terrain) { alert("地形を選択してください。"); return; }
+
+            localStorage.setItem('gemini_api_key_tekichi', apiKey);
 
             askBtn.disabled = true;
             askBtn.innerText = "AIが分析中...";
@@ -293,25 +363,15 @@
 - 最も近い調査データ: ${currentData.nearest.region} の No.${currentData.nearest.id} (環境: ${currentData.nearest.desc})
             `;
 
-            const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+            const basePayload = {
+                contents: [
+                    { parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }
+                ]
+            };
 
             try {
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
-                });
-
-               if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`APIエラー: ${errorData.error.message}`);
-                }
-                const data = await response.json();
-                const botReply = data.candidates[0].content.parts[0].text;
-                
+                const botReply = await callGeminiWithFallback(apiKey, basePayload);
                 chatBox.innerHTML = `<div class="message bot-msg">${botReply.replace(/\n/g, '<br>')}</div>`;
-
             } catch (error) {
                 chatBox.innerHTML = `<div class="message bot-msg" style="color:red;">エラー: ${error.message}</div>`;
             } finally {
